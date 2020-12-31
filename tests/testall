@@ -1,0 +1,19 @@
+#!/bin/sh
+
+cat /dev/null > log
+
+for T in $(grep -l -E "True,|False," *.py);
+do
+	echo "### $T" | tee -a -i log
+	../reconstruct.py $T | tee -a -i log
+done
+
+{ grep -E "###|TEST" log; echo '###'; } | \
+sed '
+	$ d
+	: start
+	/^###.*\n###/ { s,^### ,,; s,\n\([^#]\), \1,g; P; D }
+	/^###/ { N; b start }
+'
+rm log
+
