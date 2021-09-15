@@ -507,8 +507,8 @@ if len(sys.argv) <= 1 or sys.argv[1] == '-h':
     if len(sys.argv) <= 1:
         print('no argument')
     print('usage:')
-    print('\tsinglehead.py [-t] testfile.py')
-    print('\tsinglehead.py -f clause clause...' )
+    print('\treconstruct.py [-t] testfile.py')
+    print('\treconstruct.py -f clause clause...' )
     print('\t\tclause: ab->c, ab=c, abc (= a or b or c)')
 elif sys.argv[1] == '-f':
     analyze('cmdline formula', None, *sys.argv[2:])
