@@ -6,6 +6,20 @@
 
 import itertools
 import sys
+import time
+
+
+# stats
+
+iterations = 0
+totsubiterations = 0
+maxsubiterations = 0
+combinations = 0
+notautology = 0
+equalp = 0
+comparisons = 0
+rcnucltime = 0
+hclosetime = 0
 
 
 # print up to a certain level of nesting
@@ -272,13 +286,27 @@ def reconstruct(f):
     printinfo(1, formulatostring(f, 'simplified:'))
     printinfo(1, 'single head:', issinglehead(f))
 
+    # stats
+
+    global iterations
+    global totsubiterations
+    global maxsubiterations
+    global combinations
+    global notautology
+    global equalp
+    global comparisons
+    global rcnucltime
+    global hclosetime
+
     # for each body B in F, determine RCN(B,F) and UCL(B,F)
 
+    rcnuclstarttime = time.perf_counter()
     preconditions = bodies(f)
     rcn = {}                            # rcn[b] = RCN(B,F)
     ucl = {}                            # ucl[b] = UCL(B,F)
     for p in preconditions:
          rcn[p],ucl[p] = rcnucl(p, f)
+    rcnucltime = time.perf_counter() - rcnuclstarttime
 
     # cycle over preconditions
 
@@ -287,6 +315,8 @@ def reconstruct(f):
     bodied = set()                      # heads of the clauses of G
     used = set()                        # clauses of F used so far
     while preconditions:
+        iterations = iterations + 1
+
         formulaprint(constructed, 'constructed:')
         formulaprint(used, 'used:')
         printinfo(1, 'bodied:', ' '.join(bodied))
@@ -313,7 +343,9 @@ def reconstruct(f):
 
         # bodies
 
+        hclosestarttime = time.perf_counter()
         headbodies = hclose(pheads, ucl[p])
+        hclosetime += time.perf_counter() - hclosestarttime
         formulaprint(headbodies, '    headbodies:')
         pbodies = minbodies(headbodies, ucl[p] & used)
         inbodies = set().union(*bodies(headbodies)) - cbodies
@@ -339,7 +371,14 @@ def reconstruct(f):
 
         # test all combinations of heads and bodies
 
+        subiterations = 0
+
         for c in itertools.product(pbodies, repeat = len(pheads)):
+            totsubiterations += 1
+            subiterations += 1
+            if (subiterations > maxsubiterations):
+                maxsubiterations = subiterations
+
             formulaprint(c, '    body list:', False)
 
             # do bodies includes everything they are supposed to?
@@ -351,6 +390,7 @@ def reconstruct(f):
 
             # build the combination
 
+            combinations += 1
             it = set()
             skip = False
             for h,b in zip(pheads, c):
@@ -361,6 +401,7 @@ def reconstruct(f):
             if skip:
                 printinfo(1, '    tautology:', ''.join(b) + '->' + h)
                 continue
+            notautology += 1
 
             # check equality of variables entailed by p
 
@@ -368,6 +409,7 @@ def reconstruct(f):
             if gitrcn != rcn[p]:
                 printinfo(1, formulatostring(it, '    !rcn[precondition]:'))
                 continue
+            equalp += 1
 
             # check equality of all minimal bodies
 
@@ -383,6 +425,7 @@ def reconstruct(f):
 
             # check whether G + combination implies target
 
+            comparisons += 1
             cl = hclose(gitrcn, gitucl)
             if ptarget == cl:
                 printinfo(1, formulatostring(it, '    equivalent:'))
@@ -423,13 +466,26 @@ def analyze(d, result, *s):
         print()
         return
 
+    starttime = time.perf_counter()
     sh = reconstruct(f)
+    printinfo(0, 'iterations: ' + str(iterations))
+    printinfo(0, 'totsubiterations: ' + str(totsubiterations))
+    printinfo(0, 'maxsubiterations: ' + str(maxsubiterations))
+    printinfo(0, 'combinations: ' + str(combinations))
+    printinfo(0, 'notautology: ' + str(notautology))
+    printinfo(0, 'equalp: ' + str(equalp))
+    printinfo(0, 'comparisons: ' + str(comparisons))
+    printinfo(0, 'rcnucl:', rcnucltime)
+    printinfo(0, 'hclose:', hclosetime)
+    printinfo(0, 'time:',   time.perf_counter() - starttime)
     if sh == None:
         print('not single-head equivalent')
+        print('FALSE')
     else:
         formulaprint(sh, 'single-head form:')
         print('single-head:', issinglehead(sh))
-        print('equivalent:', equivalent(sh, f))
+#       print('equivalent:', equivalent(sh, f))
+        print('TRUE')
     if result != None:
         if (sh != None) == result:
             print('TEST PASSED')
