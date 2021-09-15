@@ -205,13 +205,15 @@ def bodies(f):
 def rcnucl(b, f):
     heads = set()
     usable = set()
-    prev = None
-    while heads != prev:
-        prev = heads.copy()
+    cont = True
+    while cont:
+        cont = False
         for c in f:
             if body(c) <= b | heads:
                  usable |= {c}
-                 heads |= {head(c)}
+                 if head(c) not in heads:
+                     heads |= {head(c)}
+                     cont = True
     return heads,minimal(usable)
 
 
