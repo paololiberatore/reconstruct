@@ -232,7 +232,7 @@ def hclose(heads, usable):
         resolved |= toresolve
         closure = minimal(closure)
         toresolve = closure - resolved
-    return closure
+    return minimal(closure)
 
 
 # minimal bodies
@@ -276,7 +276,7 @@ def minbodies(minbcl, uclscl):
                 if bprev == b:
                     min |= {frozenset(body(b))}
                     printinfo(2, formulatostring(min, '    min:', False))
-    return min
+    return minimal(min)
 
 
 # single-head equivalence
