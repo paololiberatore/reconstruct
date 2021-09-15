@@ -371,6 +371,20 @@ def reconstruct(f):
             printinfo(1, '    empty target')
             continue
 
+        # count necessary heads
+
+        necessary = 0
+        for body in pbodies:
+            cons = body | rcnucl(body, constructed)[0]
+            entailed = {other for other in pbodies - {body} if other <= cons}
+            if entailed == set():
+                necessary += 1
+                printinfo(1, '    necessary body:', ''.join(body))
+                if necessary > len(pheads):
+                    printinfo(1, '    insufficient heads:', len(pheads), '<', necessary)
+                    return None
+        printinfo(1, '    available heads:', len(pheads), ' necessary:', necessary)
+
         # test all combinations of heads and bodies
 
         subiterations = 0
