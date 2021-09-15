@@ -23,31 +23,56 @@ def printinfo(level, *s):
             print()
 
 
-# make a formula from a collection of lists
+# make a list of literals out of a string
+
+def literalset(s):
+    all = set()
+    sign = ''
+    variable = None
+    for c in s:
+        if c == '-':
+            sign = '-'
+        elif c == '&':
+            variable = c
+        elif variable != None and c == ';':
+            all |= {sign + variable + c}
+            variable = None
+            sign = ''
+        elif variable != None:
+            variable += c
+        else:
+            all |= {sign + c}
+            sign = ''
+    return all
+
+
+# make clauses from a list or string
 
 def clause(s):
     if isinstance(s, list):
-        return frozenset([frozenset(s)])
-    elif '=' in s:
-        h = s.split('=')
-        return clause(h[0] + '->' + h[1]) | clause(h[1] + '->' + h[0])
+        return {frozenset(s)}
+    elif s == '()':
+        return {frozenset()}
+    elif '->' in s:
+        p = s.split('->')
+        h = literalset(p[1])
+        b = {'-' + l for l in literalset(p[0])}
+        return {frozenset(b | {hh}) for hh in h}
     else:
-        all = frozenset()
-        body = set()
-        sign = '-'
-        for c in s:
-            if c == '>':
-                sign = ''
-            elif c == '-':
-                pass
-            elif sign == '-':
-                body |= {sign + c}
-            else:
-                all |= {frozenset(body | {sign + c})}
-        return all
+        return {frozenset(literalset(s))}
+
+
+# parse a formula
 
 def formula(*l):
-    return set().union(*{clause(x) for x in l})
+    f = set()
+    for c in l:
+        if '=' in c:
+            p = c.split('=')
+            f |= clause(p[0] + '->' + p[1]) | clause(p[1] + '->' + p[0])
+        else:
+            f |= clause(c)
+    return f
 
 
 # from clause to string
