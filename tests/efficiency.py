@@ -7,5 +7,8 @@ analyze(
 analyze(
     'the algorithm may take exponential time',
     False,
-    'a->b', 'b->c', 'c->d', 'd->e', 'e->a', 'y->z', 'a->z'
+    'a->b', 'b->c', 'c->d', 'd->e', 'e->a',
+    'a->z',
+    'y->z',
+    'y->x', 'x->w', 'w->v', 'v->u', 'u->y'
 )
